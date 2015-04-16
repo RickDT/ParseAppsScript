@@ -128,3 +128,50 @@ function makeHeaders() {
   
   return headers;
 }
+
+// Add an object to a relation
+// Example:
+// var result = parseAddToRelation("_User", "asdf12324", "saveGames", "GameSave", {
+//   "level":3
+// });
+function parseAddToRelation(className, objectId, relationName, pointerClassName, objects) {
+  var url = "https://api.parse.com/1/classes/" + className + "/" + objectId;
+  
+  // make pointers out of all the objects
+  var pointers = []
+  for (i in objects) {
+    var iObj = objects[i]
+    pointers.push(parseMakePointer(pointerClassName, iObj))
+  }
+  
+  // make the AddRelation operation
+  var params = {}
+  params[relationName] = {
+    "__op":"AddRelation",
+    "objects": pointers
+  }
+  
+  // set the REST payload and options
+  var payload = Utilities.jsonStringify(params);
+  var options = {
+    "method"  : "put",
+    "payload" : payload,
+    "headers" : makeHeaders(),
+    "contentType" : "application/json",
+    "muteHttpExceptions": false
+  };
+  
+  var resp = UrlFetchApp.fetch(url, options);
+  return resp;
+}
+
+// Make a Parse pointer
+// Example: 
+// var pointerObj = parseMakePointer("GameScore", {
+//   "playerName" : "Rick Terrill"
+// });
+function parseMakePointer(className, obj) {
+  obj["__type"] = "Pointer"
+  obj["className"] = className
+  return obj
+}
